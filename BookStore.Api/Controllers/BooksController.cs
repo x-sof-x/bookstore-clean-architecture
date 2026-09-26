@@ -1,53 +1,65 @@
 using Microsoft.AspNetCore.Mvc;
 using BookStore.Application.Interfaces;
-using BookStore.Domain.Entities;
+using BookStore.Application.DTOs.Books;
 
-namespace WebApplication2.Controllers
+namespace BookStore.Controllers
 {
     [ApiController]
     [Route("[controller]")]
     public class BooksController : ControllerBase
     {
-        public IBookService _bookService;
+        private readonly IBookService _bookService;
+
         public BooksController(IBookService bookService)
         {
             _bookService = bookService;
         }
+
+        // GET: /books?author=...&publishedYear=...
         [HttpGet]
         public IActionResult GetAll([FromQuery] string? author, [FromQuery] int? publishedYear)
         {
-            return Ok(_bookService.GetAll( author, publishedYear));
-
+            var books = _bookService.GetAll(author, publishedYear);
+            return Ok(books);
         }
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+
+        // GET: /books/{id}
+        [HttpGet("{id:guid}", Name = "GetBookById")]
+        public IActionResult GetById(Guid id)
         {
-            var user = _bookService.GetById(id);
-            if (user == null)
+            var book = _bookService.GetById(id);
+            if (book == null)
             {
                 return NotFound($" нигу з Id {id} не знайдено.");
             }
-            return Ok(user);
-        }
-        [HttpPost]
-        public IActionResult AddUser([FromBody] Book book)
-        {
-            _bookService.Add(book);
             return Ok(book);
         }
-        [HttpPut("{id}")]
-        public IActionResult Update( int id, [FromBody] Book book)
+
+        // POST: /books
+        [HttpPost]
+        
+        public IActionResult Create([FromBody] CreateBookDto dto)
         {
-            book.Id = id;
-            var isUpdated = _bookService.Update(book);
+            var createdBook = _bookService.Add(dto);
+            return CreatedAtAction(nameof(GetById), new { id = createdBook.Id }, createdBook);
+        }
+
+        // PUT: /books/{id}
+        [HttpPut("{id:guid}")]
+        public IActionResult Update(Guid id, [FromBody] UpdateBookDto dto)
+        {
+            var isUpdated = _bookService.Update(id, dto);
             if (!isUpdated)
             {
                 return NotFound($" нигу з Id {id} не знайдено.");
             }
-            return Ok(book);
+
+            return NoContent();
         }
-        [HttpDelete("{id}")]
-        public IActionResult Delete([FromBody] int id)
+
+        // DELETE: /books/{id}
+        [HttpDelete("{id:guid}")]
+        public IActionResult Delete(Guid id)
         {
             var isDeleted = _bookService.Delete(id);
             if (!isDeleted)
@@ -57,5 +69,5 @@ namespace WebApplication2.Controllers
 
             return NoContent();
         }
-}
+    }
 }

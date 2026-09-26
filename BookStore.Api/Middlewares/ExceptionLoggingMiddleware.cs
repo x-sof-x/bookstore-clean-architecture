@@ -1,18 +1,18 @@
 ﻿using BookStore.Domain.Exceptions;
 
-namespace WebApplication2.Middlewares
+namespace BookStore.Middlewares
 {
-   
     public class ExceptionLoggingMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionLoggingMiddleware> _logger;
 
-        public ExceptionLoggingMiddleware(RequestDelegate next, ILogger<ExceptionLoggingMiddleware> logger )
+        public ExceptionLoggingMiddleware(RequestDelegate next, ILogger<ExceptionLoggingMiddleware> logger)
         {
             _next = next;
             _logger = logger;
         }
+
         public async Task InvokeAsync(HttpContext context)
         {
             try
@@ -42,9 +42,17 @@ namespace WebApplication2.Middlewares
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[UNHANDLED EXCEPTION] : {Message}", ex.Message);
-                await WriteFalseResponseAsync(context);
+
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    error = ex.Message,
+                    details = ex.InnerException?.Message
+                }));
             }
         }
+
         private async Task WriteFalseResponseAsync(HttpContext context)
         {
             context.Response.StatusCode = StatusCodes.Status200OK;

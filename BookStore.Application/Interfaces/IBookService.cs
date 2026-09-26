@@ -1,13 +1,13 @@
-﻿using BookStore.Domain.Entities;
-namespace BookStore.Application.Interfaces;
+﻿using BookStore.Application.DTOs.Books;
 
+namespace BookStore.Application.Interfaces
+{
     public interface IBookService
     {
-    IEnumerable<Book> GetAll(string? author = null, int? publishedYear = null);
-    Book? GetById(int id);
-   bool Add(Book book);
-    bool Delete(int id);
-    bool Update(Book book);
-
+        IEnumerable<BookResponseDto> GetAll(string? author = null, int? publishedYear = null);
+        BookResponseDto? GetById(Guid id);
+        BookResponseDto Add(CreateBookDto dto);
+        bool Update(Guid id, UpdateBookDto dto);
+        bool Delete(Guid id);
+    }
 }
-

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BookStore.Application.Interfaces;
-namespace WebApplication2.Controllers;
+namespace BookStore.Controllers;
 [ApiController]
 [Route("[controller]")]
 public class LogController:ControllerBase

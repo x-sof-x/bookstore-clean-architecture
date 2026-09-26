@@ -1,9 +1,13 @@
-﻿namespace BookStore.Application.Interfaces
+﻿using BookStore.Application.DTOs.Authors;
+
+namespace BookStore.Application.Interfaces;
+
+public interface IAuthorService
 {
-    public interface IAuthorService
-    {
-        bool AuthorExists(string author);
-        void Add(string author);
-        void Delete(string author);
-    }
+    IEnumerable<AuthorResponseDto> GetAll();
+    AuthorResponseDto? GetById(Guid id);
+    AuthorResponseDto Add(CreateAuthorDto dto);
+    bool Update(Guid id, UpdateAuthorDto dto);
+    bool Delete(Guid id);
+    bool AuthorExists(Guid authorId);
 }

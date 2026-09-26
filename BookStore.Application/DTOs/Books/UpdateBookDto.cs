@@ -1,12 +1,11 @@
-namespace BookStore.Domain.Entities;
+﻿namespace BookStore.Application.DTOs.Books;
 
-public class Book
+public class UpdateBookDto
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
     public string Title { get; set; } = string.Empty;
+    
     public decimal Price { get; set; }
     public int PublishedYear { get; set; }
-   
     public Guid AuthorId { get; set; }
-    public Author? Author { get; set; }
+   
 }
