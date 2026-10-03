@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using BookStore.Domain.Entities;
+using BookStore.Domain.Exceptions;
 using BookStore.Application.Interfaces;
 using BookStore.Application.DTOs.Books;
 
@@ -42,19 +43,17 @@ namespace BookStore.Application.Services
             }).ToList();
         }
 
-        public BookResponseDto? GetById(Guid id)
+        public BookResponseDto GetById(Guid id)
         {
             var book = _context.Books
                 .Include(b => b.Author)
-                .FirstOrDefault(b => b.Id == id);
-
-            if (book == null) return null;
+                .FirstOrDefault(b => b.Id == id)
+                ?? throw new NotFoundException("Книгу", id);
 
             return new BookResponseDto
             {
                 Id = book.Id,
                 Title = book.Title,
-                
                 Price = book.Price,
                 PublishedYear = book.PublishedYear,
                 AuthorId = book.AuthorId,
@@ -68,57 +67,40 @@ namespace BookStore.Application.Services
             {
                 Id = Guid.NewGuid(),
                 Title = dto.Title,
-                
                 Price = dto.Price,
                 PublishedYear = dto.PublishedYear,
                 AuthorId = dto.AuthorId
             };
 
-            if (!_validationService.AddBookValidation(book))
-            {
-                throw new ArgumentException("Дані книги не пройшли валідацію.");
-            }
+            _validationService.Validate(book);
 
             _context.Books.Add(book);
             _context.SaveChanges();
 
-            return GetById(book.Id)!;
+            return GetById(book.Id);
         }
 
-        public bool Update(Guid id, UpdateBookDto dto)
+        public void Update(Guid id, UpdateBookDto dto)
         {
-            var existingBook = _context.Books.Find(id);
-            if (existingBook == null)
-            {
-                return false;
-            }
+            var book = _context.Books.Find(id)
+                ?? throw new NotFoundException("Книгу", id);
 
-            existingBook.Title = dto.Title;
-            
-            existingBook.Price = dto.Price;
-            existingBook.PublishedYear = dto.PublishedYear;
-            existingBook.AuthorId = dto.AuthorId;
+            book.Title = dto.Title;
+            book.Price = dto.Price;
+            book.PublishedYear = dto.PublishedYear;
+            book.AuthorId = dto.AuthorId;
 
-            if (!_validationService.AddBookValidation(existingBook))
-            {
-                return false;
-            }
-
+            _validationService.Validate(book);
             _context.SaveChanges();
-            return true;
         }
 
-        public bool Delete(Guid id)
+        public void Delete(Guid id)
         {
-            var book = _context.Books.Find(id);
-            if (book == null)
-            {
-                return false;
-            }
+            var book = _context.Books.Find(id)
+                ?? throw new NotFoundException("Книгу", id);
 
             _context.Books.Remove(book);
             _context.SaveChanges();
-            return true;
         }
     }
 }

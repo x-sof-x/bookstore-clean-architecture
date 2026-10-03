@@ -1,6 +1,7 @@
 ﻿using BookStore.Application.DTOs.Authors;
 using BookStore.Application.Interfaces;
 using BookStore.Domain.Entities;
+using BookStore.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Application.Services;
@@ -27,13 +28,12 @@ public class AuthorService : IAuthorService
             }).ToList();
     }
 
-    public AuthorResponseDto? GetById(Guid id)
+    public AuthorResponseDto GetById(Guid id)
     {
         var author = _context.Authors
             .Include(a => a.Books)
-            .FirstOrDefault(a => a.Id == id);
-
-        if (author == null) return null;
+            .FirstOrDefault(a => a.Id == id)
+            ?? throw new NotFoundException("Автора", id);
 
         return new AuthorResponseDto
         {
@@ -65,27 +65,26 @@ public class AuthorService : IAuthorService
         };
     }
 
-    public bool Update(Guid id, UpdateAuthorDto dto)
+    public void Update(Guid id, UpdateAuthorDto dto)
     {
-        var author = _context.Authors.FirstOrDefault(a => a.Id == id);
-        if (author == null) return false;
+        var author = _context.Authors.FirstOrDefault(a => a.Id == id)
+            ?? throw new NotFoundException("Автора", id);
 
         author.Name = dto.Name;
         author.Biography = dto.Biography;
 
         _context.SaveChanges();
-        return true;
     }
 
-    public bool Delete(Guid id)
+    public void Delete(Guid id)
     {
-        var author = _context.Authors.FirstOrDefault(a => a.Id == id);
-        if (author == null) return false;
+        var author = _context.Authors.FirstOrDefault(a => a.Id == id)
+            ?? throw new NotFoundException("Автора", id);
 
         _context.Authors.Remove(author);
         _context.SaveChanges();
-        return true;
     }
+
     public bool AuthorExists(Guid authorId)
     {
         return _context.Authors.Any(a => a.Id == authorId);

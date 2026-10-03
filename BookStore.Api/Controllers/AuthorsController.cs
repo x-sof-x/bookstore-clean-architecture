@@ -28,10 +28,6 @@ namespace BookStore.Api.Controllers
         public IActionResult GetById(Guid id)
         {
             var author = _authorService.GetById(id);
-            if (author == null)
-            {
-                return NotFound($"Автора з Id {id} не знайдено.");
-            }
             return Ok(author);
         }
 
@@ -47,12 +43,7 @@ namespace BookStore.Api.Controllers
         [HttpPut("{id:guid}")]
         public IActionResult Update(Guid id, [FromBody] UpdateAuthorDto dto)
         {
-            var isUpdated = _authorService.Update(id, dto);
-            if (!isUpdated)
-            {
-                return NotFound($"Автора з Id {id} не знайдено.");
-            }
-
+            _authorService.Update(id, dto);
             return NoContent();
         }
 
@@ -60,12 +51,7 @@ namespace BookStore.Api.Controllers
         [HttpDelete("{id:guid}")]
         public IActionResult Delete(Guid id)
         {
-            var isDeleted = _authorService.Delete(id);
-            if (!isDeleted)
-            {
-                return NotFound($"Автора з Id {id} не знайдено.");
-            }
-
+            _authorService.Delete(id);
             return NoContent();
         }
     }

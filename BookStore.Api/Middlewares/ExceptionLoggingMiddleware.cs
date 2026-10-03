@@ -1,63 +1,48 @@
-﻿using BookStore.Domain.Exceptions;
+﻿using System.Threading.Tasks;
+using System;
+using BookStore.Domain.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 
-namespace BookStore.Middlewares
+namespace BookStore.Middlewares;
+
+public class ExceptionLoggingMiddleware
 {
-    public class ExceptionLoggingMiddleware
+    private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionLoggingMiddleware> _logger;
+
+    public ExceptionLoggingMiddleware(RequestDelegate next, ILogger<ExceptionLoggingMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionLoggingMiddleware> _logger;
+        _next = next;
+        _logger = logger;
+    }
 
-        public ExceptionLoggingMiddleware(RequestDelegate next, ILogger<ExceptionLoggingMiddleware> logger)
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
         {
-            _next = next;
-            _logger = logger;
+            await _next(context);
         }
-
-        public async Task InvokeAsync(HttpContext context)
+        catch (Exception ex)
         {
-            try
+            var (status, title, level) = ex switch
             {
-                await _next(context);
-            }
-            catch (InfoExceptions ex)
-            {
-                _logger.LogInformation(ex, "[INFO LOG] : {Message}", ex.Message);
-                await WriteFalseResponseAsync(context);
-            }
-            catch (DebugException ex)
-            {
-                _logger.LogDebug(ex, "[DEBUG LOG] : {Message}", ex.Message);
-                await WriteFalseResponseAsync(context);
-            }
-            catch (WarningException ex)
-            {
-                _logger.LogWarning(ex, "[WARNING LOG] : {Message}", ex.Message);
-                await WriteFalseResponseAsync(context);
-            }
-            catch (CustomErrorException ex)
-            {
-                _logger.LogError(ex, "[ERROR LOG] : {Message}", ex.Message);
-                await WriteFalseResponseAsync(context);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[UNHANDLED EXCEPTION] : {Message}", ex.Message);
+                NotFoundException => (StatusCodes.Status404NotFound, "Not Found", LogLevel.Information),
+                BadRequestException => (StatusCodes.Status400BadRequest, "Bad Request", LogLevel.Warning),
+                ConflictException => (StatusCodes.Status409Conflict, "Conflict", LogLevel.Warning),
+                _ => (StatusCodes.Status500InternalServerError, "Internal Server Error", LogLevel.Error)
+            };
 
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    error = ex.Message,
-                    details = ex.InnerException?.Message
-                }));
-            }
-        }
+            _logger.Log(level, ex, "{Title}: {Message}", title, ex.Message);
 
-        private async Task WriteFalseResponseAsync(HttpContext context)
-        {
-            context.Response.StatusCode = StatusCodes.Status200OK;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("false");
+            if (context.Response.HasStarted) throw;
+
+            context.Response.StatusCode = status;
+            await context.Response.WriteAsJsonAsync(new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = status == 500 ? "Сталася внутрішня помилка сервера." : ex.Message
+            });
         }
     }
 }

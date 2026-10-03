@@ -1,7 +1,6 @@
 using BookStore.Application.Interfaces;
 using BookStore.Application.Services;
 using BookStore.Infrastructure.Data;
-using BookStore.Infrastructure.Logging;
 using Microsoft.EntityFrameworkCore;
 using BookStore.Middlewares;
 
@@ -15,7 +14,6 @@ builder.Services.AddDbContext<BookStoreDbContext>(options =>
 builder.Services.AddScoped<IBookStoreDbContext>(sp => sp.GetRequiredService<BookStoreDbContext>());
 
 builder.Services.AddMemoryCache();
-builder.Services.AddScoped<ILogsService, LogsService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

@@ -1,40 +1,27 @@
-﻿using BookStore.Domain.Entities;
-using BookStore.Application.Interfaces;
+﻿using BookStore.Application.Interfaces;
+using BookStore.Domain.Entities;
+using BookStore.Domain.Exceptions;
 
-namespace BookStore.Application.Interfaces
+namespace BookStore.Application.Services;
+
+public class BookValidationService : IBookValidationService
 {
-    public class BookValidationService : IBookValidationService
+    private readonly IAuthorService _authorService;
+
+    public BookValidationService(IAuthorService authorService)
     {
-        private readonly IAuthorService _authorService;
+        _authorService = authorService;
+    }
 
-        public BookValidationService(IAuthorService authorService)
-        {
-            _authorService = authorService;
-        }
+    public void Validate(Book book)
+    {
+        if (string.IsNullOrWhiteSpace(book.Title) || book.Title.Length > 30)
+            throw new BadRequestException("Назва книги обов'язкова і не довша за 30 символів.");
 
-        public bool AddBookValidation(Book book)
-        {
-            if (book == null)
-            {
-                return false;
-            }
+        if (book.PublishedYear > DateTime.Now.Year)
+            throw new BadRequestException("Рік видання не може бути в майбутньому.");
 
-            if (string.IsNullOrWhiteSpace(book.Title) || book.Title.Length > 30)
-            {
-                return false;
-            }
-
-            if (book.PublishedYear > DateTime.Now.Year)
-            {
-                return false;
-            }
-
-            if (!_authorService.AuthorExists(book.AuthorId))
-            {
-                return false;
-            }
-
-            return true;
-        }
+        if (!_authorService.AuthorExists(book.AuthorId))
+            throw new BadRequestException($"Автора з Id {book.AuthorId} не існує.");
     }
 }

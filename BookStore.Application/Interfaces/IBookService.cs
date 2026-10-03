@@ -5,9 +5,9 @@ namespace BookStore.Application.Interfaces
     public interface IBookService
     {
         IEnumerable<BookResponseDto> GetAll(string? author = null, int? publishedYear = null);
-        BookResponseDto? GetById(Guid id);
+        BookResponseDto GetById(Guid id);
         BookResponseDto Add(CreateBookDto dto);
-        bool Update(Guid id, UpdateBookDto dto);
-        bool Delete(Guid id);
+        void Update(Guid id, UpdateBookDto dto);
+        void Delete(Guid id);
     }
 }

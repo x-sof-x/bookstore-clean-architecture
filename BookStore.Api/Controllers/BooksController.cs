@@ -28,16 +28,11 @@ namespace BookStore.Controllers
         public IActionResult GetById(Guid id)
         {
             var book = _bookService.GetById(id);
-            if (book == null)
-            {
-                return NotFound($" нигу з Id {id} не знайдено.");
-            }
             return Ok(book);
         }
 
         // POST: /books
         [HttpPost]
-        
         public IActionResult Create([FromBody] CreateBookDto dto)
         {
             var createdBook = _bookService.Add(dto);
@@ -48,12 +43,7 @@ namespace BookStore.Controllers
         [HttpPut("{id:guid}")]
         public IActionResult Update(Guid id, [FromBody] UpdateBookDto dto)
         {
-            var isUpdated = _bookService.Update(id, dto);
-            if (!isUpdated)
-            {
-                return NotFound($" нигу з Id {id} не знайдено.");
-            }
-
+            _bookService.Update(id, dto);
             return NoContent();
         }
 
@@ -61,12 +51,7 @@ namespace BookStore.Controllers
         [HttpDelete("{id:guid}")]
         public IActionResult Delete(Guid id)
         {
-            var isDeleted = _bookService.Delete(id);
-            if (!isDeleted)
-            {
-                return NotFound($" нигу з Id {id} не знайдено.");
-            }
-
+            _bookService.Delete(id);
             return NoContent();
         }
     }
