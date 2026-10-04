@@ -4,10 +4,10 @@ namespace BookStore.Application.Interfaces;
 
 public interface IAuthorService
 {
-    IEnumerable<AuthorResponseDto> GetAll();
-    AuthorResponseDto GetById(Guid id);
-    AuthorResponseDto Add(CreateAuthorDto dto);
-    void Update(Guid id, UpdateAuthorDto dto);
-    void Delete(Guid id);
-    bool AuthorExists(Guid authorId);
+    Task<IEnumerable<AuthorResponseDto>> GetAllAsync(CancellationToken ct = default);
+    Task<AuthorResponseDto> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<AuthorResponseDto> AddAsync(CreateAuthorDto dto, CancellationToken ct = default);
+    Task UpdateAsync(Guid id, UpdateAuthorDto dto, CancellationToken ct = default);
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
+    Task<bool> AuthorExistsAsync(Guid authorId, CancellationToken ct = default);
 }

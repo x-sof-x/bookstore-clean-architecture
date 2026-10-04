@@ -17,41 +17,41 @@ namespace BookStore.Api.Controllers
 
         // GET: /Authors
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll(CancellationToken ct)
         {
-            var authors = _authorService.GetAll();
+            var authors = await _authorService.GetAllAsync(ct);
             return Ok(authors);
         }
 
         // GET: /Authors/{id}
         [HttpGet("{id:guid}", Name = "GetAuthorById")]
-        public IActionResult GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         {
-            var author = _authorService.GetById(id);
+            var author = await _authorService.GetByIdAsync(id, ct);
             return Ok(author);
         }
 
         // POST: /Authors
         [HttpPost]
-        public IActionResult Create([FromBody] CreateAuthorDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateAuthorDto dto, CancellationToken ct)
         {
-            var createdAuthor = _authorService.Add(dto);
+            var createdAuthor = await _authorService.AddAsync(dto, ct);
             return CreatedAtAction("GetAuthorById", new { id = createdAuthor.Id }, createdAuthor);
         }
 
         // PUT: /Authors/{id}
         [HttpPut("{id:guid}")]
-        public IActionResult Update(Guid id, [FromBody] UpdateAuthorDto dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAuthorDto dto, CancellationToken ct)
         {
-            _authorService.Update(id, dto);
+            await _authorService.UpdateAsync(id, dto, ct);
             return NoContent();
         }
 
         // DELETE: /Authors/{id}
         [HttpDelete("{id:guid}")]
-        public IActionResult Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
         {
-            _authorService.Delete(id);
+            await _authorService.DeleteAsync(id, ct);
             return NoContent();
         }
     }

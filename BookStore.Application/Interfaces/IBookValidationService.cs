@@ -4,6 +4,6 @@ namespace BookStore.Application.Interfaces
 {
     public interface IBookValidationService
     {
-        void Validate(Book book);
+        Task ValidateAsync(Book book, CancellationToken ct = default);
     }
 }

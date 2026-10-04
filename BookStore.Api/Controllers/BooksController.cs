@@ -17,41 +17,42 @@ namespace BookStore.Controllers
 
         // GET: /books?author=...&publishedYear=...
         [HttpGet]
-        public IActionResult GetAll([FromQuery] string? author, [FromQuery] int? publishedYear)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? author, [FromQuery] int? publishedYear, CancellationToken ct)
         {
-            var books = _bookService.GetAll(author, publishedYear);
+            var books = await _bookService.GetAllAsync(author, publishedYear, ct);
             return Ok(books);
         }
 
         // GET: /books/{id}
         [HttpGet("{id:guid}", Name = "GetBookById")]
-        public IActionResult GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         {
-            var book = _bookService.GetById(id);
+            var book = await _bookService.GetByIdAsync(id, ct);
             return Ok(book);
         }
 
         // POST: /books
         [HttpPost]
-        public IActionResult Create([FromBody] CreateBookDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateBookDto dto, CancellationToken ct)
         {
-            var createdBook = _bookService.Add(dto);
+            var createdBook = await _bookService.AddAsync(dto, ct);
             return CreatedAtAction(nameof(GetById), new { id = createdBook.Id }, createdBook);
         }
 
         // PUT: /books/{id}
         [HttpPut("{id:guid}")]
-        public IActionResult Update(Guid id, [FromBody] UpdateBookDto dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateBookDto dto, CancellationToken ct)
         {
-            _bookService.Update(id, dto);
+            await _bookService.UpdateAsync(id, dto, ct);
             return NoContent();
         }
 
         // DELETE: /books/{id}
         [HttpDelete("{id:guid}")]
-        public IActionResult Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
         {
-            _bookService.Delete(id);
+            await _bookService.DeleteAsync(id, ct);
             return NoContent();
         }
     }

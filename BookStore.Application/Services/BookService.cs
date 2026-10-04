@@ -17,9 +17,10 @@ namespace BookStore.Application.Services
             _context = context;
         }
 
-        public IEnumerable<BookResponseDto> GetAll(string? author = null, int? publishedYear = null)
+        public async Task<IEnumerable<BookResponseDto>> GetAllAsync(
+            string? author = null, int? publishedYear = null, CancellationToken ct = default)
         {
-            var query = _context.Books.Include(b => b.Author).AsQueryable();
+            var query = _context.Books.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(author))
             {
@@ -32,7 +33,7 @@ namespace BookStore.Application.Services
                 query = query.Where(b => b.PublishedYear == publishedYear.Value);
             }
 
-            return query.Select(b => new BookResponseDto
+            return await query.Select(b => new BookResponseDto
             {
                 Id = b.Id,
                 Title = b.Title,
@@ -40,14 +41,14 @@ namespace BookStore.Application.Services
                 PublishedYear = b.PublishedYear,
                 AuthorId = b.AuthorId,
                 AuthorName = b.Author != null ? b.Author.Name : string.Empty
-            }).ToList();
+            }).ToListAsync(ct);
         }
 
-        public BookResponseDto GetById(Guid id)
+        public async Task<BookResponseDto> GetByIdAsync(Guid id, CancellationToken ct = default)
         {
-            var book = _context.Books
+            var book = await _context.Books
                 .Include(b => b.Author)
-                .FirstOrDefault(b => b.Id == id)
+                .FirstOrDefaultAsync(b => b.Id == id, ct)
                 ?? throw new NotFoundException("Книгу", id);
 
             return new BookResponseDto
@@ -61,7 +62,7 @@ namespace BookStore.Application.Services
             };
         }
 
-        public BookResponseDto Add(CreateBookDto dto)
+        public async Task<BookResponseDto> AddAsync(CreateBookDto dto, CancellationToken ct = default)
         {
             var book = new Book
             {
@@ -72,17 +73,17 @@ namespace BookStore.Application.Services
                 AuthorId = dto.AuthorId
             };
 
-            _validationService.Validate(book);
+            await _validationService.ValidateAsync(book, ct);
 
             _context.Books.Add(book);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync(ct);
 
-            return GetById(book.Id);
+            return await GetByIdAsync(book.Id, ct);
         }
 
-        public void Update(Guid id, UpdateBookDto dto)
+        public async Task UpdateAsync(Guid id, UpdateBookDto dto, CancellationToken ct = default)
         {
-            var book = _context.Books.Find(id)
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id, ct)
                 ?? throw new NotFoundException("Книгу", id);
 
             book.Title = dto.Title;
@@ -90,17 +91,17 @@ namespace BookStore.Application.Services
             book.PublishedYear = dto.PublishedYear;
             book.AuthorId = dto.AuthorId;
 
-            _validationService.Validate(book);
-            _context.SaveChanges();
+            await _validationService.ValidateAsync(book, ct);
+            await _context.SaveChangesAsync(ct);
         }
 
-        public void Delete(Guid id)
+        public async Task DeleteAsync(Guid id, CancellationToken ct = default)
         {
-            var book = _context.Books.Find(id)
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id, ct)
                 ?? throw new NotFoundException("Книгу", id);
 
             _context.Books.Remove(book);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync(ct);
         }
     }
 }

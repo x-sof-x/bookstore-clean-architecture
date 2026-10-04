@@ -15,24 +15,24 @@ public class AuthorService : IAuthorService
         _context = context;
     }
 
-    public IEnumerable<AuthorResponseDto> GetAll()
+    public async Task<IEnumerable<AuthorResponseDto>> GetAllAsync(CancellationToken ct = default)
     {
-        return _context.Authors
-            .Include(a => a.Books)
+        return await _context.Authors
             .Select(a => new AuthorResponseDto
             {
                 Id = a.Id,
                 Name = a.Name,
                 Biography = a.Biography,
                 BookTitles = a.Books.Select(b => b.Title).ToList()
-            }).ToList();
+            })
+            .ToListAsync(ct);
     }
 
-    public AuthorResponseDto GetById(Guid id)
+    public async Task<AuthorResponseDto> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var author = _context.Authors
+        var author = await _context.Authors
             .Include(a => a.Books)
-            .FirstOrDefault(a => a.Id == id)
+            .FirstOrDefaultAsync(a => a.Id == id, ct)
             ?? throw new NotFoundException("Автора", id);
 
         return new AuthorResponseDto
@@ -44,7 +44,7 @@ public class AuthorService : IAuthorService
         };
     }
 
-    public AuthorResponseDto Add(CreateAuthorDto dto)
+    public async Task<AuthorResponseDto> AddAsync(CreateAuthorDto dto, CancellationToken ct = default)
     {
         var author = new Author
         {
@@ -54,7 +54,7 @@ public class AuthorService : IAuthorService
         };
 
         _context.Authors.Add(author);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(ct);
 
         return new AuthorResponseDto
         {
@@ -65,28 +65,28 @@ public class AuthorService : IAuthorService
         };
     }
 
-    public void Update(Guid id, UpdateAuthorDto dto)
+    public async Task UpdateAsync(Guid id, UpdateAuthorDto dto, CancellationToken ct = default)
     {
-        var author = _context.Authors.FirstOrDefault(a => a.Id == id)
+        var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id, ct)
             ?? throw new NotFoundException("Автора", id);
 
         author.Name = dto.Name;
         author.Biography = dto.Biography;
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(ct);
     }
 
-    public void Delete(Guid id)
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var author = _context.Authors.FirstOrDefault(a => a.Id == id)
+        var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id, ct)
             ?? throw new NotFoundException("Автора", id);
 
         _context.Authors.Remove(author);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(ct);
     }
 
-    public bool AuthorExists(Guid authorId)
+    public async Task<bool> AuthorExistsAsync(Guid authorId, CancellationToken ct = default)
     {
-        return _context.Authors.Any(a => a.Id == authorId);
+        return await _context.Authors.AnyAsync(a => a.Id == authorId, ct);
     }
 }
