@@ -36,7 +36,7 @@ namespace BookStore.Api.Controllers
         public async Task<IActionResult> Create([FromBody] CreateAuthorDto dto, CancellationToken ct)
         {
             var createdAuthor = await _authorService.AddAsync(dto, ct);
-            return CreatedAtAction("GetAuthorById", new { id = createdAuthor.Id }, createdAuthor);
+            return CreatedAtAction(nameof(GetById), new { id = createdAuthor.Id }, createdAuthor);
         }
 
         // PUT: /Authors/{id}

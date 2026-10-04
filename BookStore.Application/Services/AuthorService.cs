@@ -46,10 +46,15 @@ public class AuthorService : IAuthorService
 
     public async Task<AuthorResponseDto> AddAsync(CreateAuthorDto dto, CancellationToken ct = default)
     {
+        var name = dto.Name.Trim();
+
+        if (await _context.Authors.AnyAsync(a => a.Name.ToLower() == name.ToLower(), ct))
+            throw new ConflictException($"Автор з іменем «{name}» вже існує.");
+
         var author = new Author
         {
             Id = Guid.NewGuid(),
-            Name = dto.Name,
+            Name = name,
             Biography = dto.Biography
         };
 
@@ -70,7 +75,12 @@ public class AuthorService : IAuthorService
         var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id, ct)
             ?? throw new NotFoundException("Автора", id);
 
-        author.Name = dto.Name;
+        var name = dto.Name.Trim();
+
+        if (await _context.Authors.AnyAsync(a => a.Id != id && a.Name.ToLower() == name.ToLower(), ct))
+            throw new ConflictException($"Автор з іменем «{name}» вже існує.");
+
+        author.Name = name;
         author.Biography = dto.Biography;
 
         await _context.SaveChangesAsync(ct);
